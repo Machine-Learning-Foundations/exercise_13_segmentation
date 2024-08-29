@@ -7,18 +7,21 @@ from T2-Weighted MRI"](https://www.var.ovgu.de/pub/2019_Meyer_ISBI_Zone_Segmenta
 by Meyer et al.
 
 
-1. To get started run
+### Task 1: To get started run
 
 ```bash
 python ./data/download.py
 ```
 
 in your terminal. The script will download and prepare the medical scans and domain-expert
-annotations for you.
+annotations for you or you can copy the data from bender at the following location.
+```bash
+TODO: update bender location here.
+```
 
-Data loading and resampling work already. 
+Data loading and resampling work already. The next task is optional. If you want to skip it, download the `compute_roi.py` from eCampus and replace the contents with the existing function `compute_roi()` in the repository.
 
-1. #### Find the bounding box roi as described below by finishing the `compute_roi` function.
+### Task 2 (Optional): Find the bounding box roi as described below by finishing the `compute_roi` function. 
 Once you have obtained the train and test data, you must create a preprocessing pipeline.
 Proceed to `src/util.py` and compute the so called region of interest.
 Meyer et al. define this region as:
@@ -70,13 +73,12 @@ local coordinates now allows array indexing. Following Meyer et al. we discard a
 
 Test your implementation by setting the if-condition wrapping the plotting utility in `compute_roi` to `True` and running vscode pytest `test_roi`. Remember to set it back to `False` afterwards.
 
-2. #### Implement the UNet. 
+### Task 3: Implement the UNet. 
+Navigate to the `train.py` file in the `src` folder.
+Finish the `UNet3D` class, as discussed in the lecture.
+Use [torch.nn.Conv3d](https://pytorch.org/docs/stable/generated/torch.nn.Conv3d.html), [torch.nn.ReLU](https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html), [torch.nn.MaxPool3d](https://pytorch.org/docs/stable/generated/torch.nn.MaxPool3d.html) and [th.nn.UpSample](https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html) to build the model. For upsampling, we suggest to use `mode='nearest'` algorithm for reproducibility purpose.
 
-Navigate to the `train.py` module file in the `src` folder. 
-Finish the `UNet3D` class, as discussed in the lecture. 
-Use the [flax.linen.Conv](https://flax.readthedocs.io/en/latest/api_reference/flax.linen/_autosummary/flax.linen.Conv.html), [flax.linen.relu](https://flax.readthedocs.io/en/latest/api_reference/flax.linen/_autosummary/flax.linen.activation.relu.html), and [flax.linen.ConvTranspose](https://flax.readthedocs.io/en/latest/api_reference/flax.linen/_autosummary/flax.linen.ConvTranspose.html), to build your model.
-
-3. #### Implement the focal-loss
+### Task 4: Implement the focal-loss.
 
 Open the `util.py` module in `src` and implement the `softmax_focal_loss` function as discussed in the lecture:
 
@@ -84,18 +86,14 @@ $$\mathcal{L}(\mathbf{o},\mathbf{I})=-\mathbf{I}\cdot(1-\sigma_s(\mathbf{o}))^\g
 
 with output logits $\mathbf{o}$, the corresponding labels $\mathbf{I}$ and the softmax function $\sigma_s$.
 
-4. #### Run and test the training script.
+### Task 5: Run and test the training script.
 
 Execute the training script with by running `scripts/train.slurm` (locally or using `sbatch`).
 
 After training you can test your model by changing the `checkpoint_name` variable in `src/sample.py` to the desired model checkpoint and running `scripts/test.slurm`.
 
-#### Solution:
-![slice](./fig/prostatext2.png)
-![slice](./fig/prostatext2_net.png)
-![slice](./fig/prostatext2_true.png)
 
-5. #### (Optional) Implement mean Intersection-over-Union (mIoU)
+### Task 6: Implement mean Intersection-over-Union (mIoU)
 
 Open the `meanIoU.py` in `src` and implement the `compute_iou` function as discussed below.
 mIoU is the most common metric used for evaluating semantic segmentation tasks. It can be computed using the values from a confusion matrix as given below
@@ -114,4 +112,3 @@ python -m src.meanIoU
 ### Acknowledgments:
 We thank our course alumni Barbara Wichtmann, for bringing this problem to our attention.
 Without her feedback, this code would not exist.
-

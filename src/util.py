@@ -2,14 +2,11 @@
 
 from typing import List, Tuple
 
-import chex
-import jax
-import jax.numpy as jnp
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
-import optax
 import SimpleITK as sitk  # noqa: N813
+import torch as th
 from SimpleITK.SimpleITK import Image
 
 # from . import zone_segmentation_utils as utils
@@ -140,20 +137,26 @@ def compute_roi(images: Tuple[Image, Image, Image]):
     rects = []
     for pos, size in enumerate(sizes):
         lines = box_lines(size)
-        rotated = [(rotation[pos] @ line.T).T for line in lines]
-        shifted = [origins[pos] + line for line in rotated]
+        # TODO: Rotate and shift the lines.
+        rotated = []
+        shifted = []
         rects.append(shifted)
 
     # find the intersection.
     rects_stacked = np.stack(rects)  # Had to rename because of mypy
+    # TODO: Find the axis maxima and minima
     bbs = [
-        (np.amin(rect, axis=(0, 1)), np.amax(rect, axis=(0, 1)))
+        (
+            np.zeros_like(rect[0, 0]),
+            np.zeros_like(rect[0, 0]),
+        )  # TODO: fixme
         for rect in rects_stacked
     ]
 
     # compute intersection
-    lower_end = np.amax(np.stack([bb[0] for bb in bbs], axis=0), axis=0)
-    upper_end = np.amin(np.stack([bb[1] for bb in bbs], axis=0), axis=0)
+    # TODO: Implement me.
+    lower_end = np.zeros_like(bbs[0][0])
+    upper_end = np.zeros_like(bbs[0][1])
     roi_bb = np.stack((lower_end, upper_end))
     roi_bb_size = roi_bb[1] - roi_bb[0]
 
@@ -164,8 +167,8 @@ def compute_roi(images: Tuple[Image, Image, Image]):
     # compute roi coordinates in image space.
     img_coord_rois = [
         (
-            (np.linalg.inv(rot) @ (roi_bb[0] - offset).T).T / spacing,
-            (np.linalg.inv(rot) @ (roi_bb[1] - offset).T).T / spacing,
+            np.zeros_like(roi_bb[0]),  # TODO: Implement me
+            np.zeros_like(roi_bb[1]),  # TODO: Implement me
         )
         for rot, offset, spacing in zip(rotation, origins, spacings)
     ]
@@ -244,54 +247,6 @@ def compute_roi(images: Tuple[Image, Image, Image]):
     return intersections, box_indices
 
 
-def sigmoid_focal_loss(
-    logits: jnp.ndarray,
-    labels: jnp.ndarray,
-    alpha: float = -1,
-    gamma: float = 2,
-) -> jnp.ndarray:
-    """Compute a sigmoid focal loss.
-
-    Implementation of the focal loss as used https://arxiv.org/abs/1708.02002.
-    This loss often appears in the segmentation context.
-    Use this loss function if classes are not mutually exclusive.
-    See `sigmoid_binary_cross_entropy` for more information.
-
-    Args:
-        logits: A float array of arbitrary shape.
-                The predictions for each example.
-        labels: A float array, its shape must be identical to
-                that of logits. It containes the binary
-                 classification label for each element in logits
-                (0 for the out of class and 1 for in class).
-                This array is often one-hot encoded.
-        alpha: (optional) Weighting factor in range (0,1) to balance
-                positive vs negative examples. Default = -1 (no weighting).
-        gamma: Exponent of the modulating factor (1 - p_t) to
-               balance easy vs hard examples.
-
-    Returns:
-        A loss value array with a shape identical to the logits and target
-        arrays.
-    """
-    chex.assert_type([logits], float)
-    labels = labels.astype(logits.dtype)
-
-    # see also the original implementation at:
-    # https://github.com/facebookresearch/fvcore/blob/main/fvcore/nn/focal_loss.py
-    p = jax.nn.sigmoid(logits)
-    ce_loss = optax.sigmoid_binary_cross_entropy(logits, labels)
-    p_t = p * labels + (1 - p) * (1 - labels)
-    loss = ce_loss * ((1 - p_t) ** gamma)
-    if alpha >= 0:
-        alpha_t = alpha * labels + (1 - alpha) * (1 - labels)
-        loss = alpha_t * loss
-    return loss
-
-
-import torch as th
-
-
 def softmax_focal_loss(
     logits: th.Tensor,
     labels: th.Tensor,
@@ -308,25 +263,5 @@ def softmax_focal_loss(
     # return jnp.sum(loss, axis=-1)
     logits = logits.float()
     labels = labels.float()
-    focus = th.pow(1.0 - th.nn.functional.softmax(logits, dim=-1), gamma)
-    loss = -labels * focus * alpha * th.nn.functional.log_softmax(logits, dim=-1)
-    return th.sum(loss, dim=-1)
-
-
-# def tversky(y_true, y_pred, alpha=.3, beta=.7):
-#     """See: https://arxiv.org/pdf/1706.05721.pdf"""
-#     y_true_f = jnp.reshape(y_true, -1)
-#     y_pred_f = jnp.reshape(y_pred, -1)
-#     intersection = jnp.sum(y_true_f * y_pred_f)
-#     G_P = alpha * jnp.sum((1 - y_true_f) * y_pred_f)  # G not P
-#     P_G = beta * jnp.sum(y_true_f * (1 - y_pred_f))  # P not G
-#     return (intersection + 1.) / (intersection + 1. + G_P + P_G)
-#
-# def Tversky_loss(y_true, y_pred):
-#     return -tversky(y_true, y_pred)
-#
-#
-# def dice_coeff(logits, labels):
-#     pred_probs = jax.nn.softmax(logits)
-#     intersection = jnp.sum(labels * logits)
-#     return ((2. * intersection + 1.) / (jnp.sum(labels) + jnp.sum(pred_probs) + 1.))*(-1.)
+    # TODO: Implement softmax focal loss.
+    return th.tensor(0.0)

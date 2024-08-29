@@ -74,79 +74,8 @@ class UNet3D(th.nn.Module):
         input_feat = 1
         init_feat = 16
         out_neurons = 5
-        # Five Downscale blocks
-        self.downscale_1 = th.nn.Sequential(
-            th.nn.Conv3d(input_feat, init_feat, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-            th.nn.Conv3d(init_feat, init_feat, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-        )
-        self.downscale_2 = th.nn.Sequential(
-            th.nn.MaxPool3d((1, 2, 2), stride=(1, 2, 2)),
-            # th.nn.BatchNorm3d(init_feat),
-            th.nn.Conv3d(init_feat, init_feat * 2, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-            th.nn.Conv3d(init_feat * 2, init_feat * 2, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-        )
-        self.downscale_3 = th.nn.Sequential(
-            th.nn.MaxPool3d((1, 2, 2), stride=(1, 2, 2)),
-            # th.nn.BatchNorm3d(init_feat * 2),
-            th.nn.Conv3d(init_feat * 2, init_feat * 4, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-            th.nn.Conv3d(init_feat * 4, init_feat * 4, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-        )
-        self.downscale_4 = th.nn.Sequential(
-            th.nn.MaxPool3d((1, 2, 2), stride=(1, 2, 2)),
-            # th.nn.BatchNorm3d(init_feat * 4),
-            th.nn.Conv3d(init_feat * 4, init_feat * 8, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-            th.nn.Conv3d(init_feat * 8, init_feat * 8, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-        )
-        self.downscale_5 = th.nn.Sequential(
-            th.nn.MaxPool3d((1, 2, 2), stride=(1, 2, 2)),
-            # th.nn.BatchNorm3d(init_feat * 8),
-            th.nn.Conv3d(init_feat * 8, init_feat * 16, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-            th.nn.Conv3d(init_feat * 16, init_feat * 16, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-        )
-        # Four Upscale conv blocks
-        self.upscale_4 = th.nn.Sequential(
-            # th.nn.BatchNorm3d(init_feat * 16  + init_feat * 8),
-            th.nn.Conv3d(
-                init_feat * 16 + init_feat * 8, init_feat * 8, (3, 3, 3), padding=1
-            ),
-            th.nn.ReLU(),
-            th.nn.Conv3d(init_feat * 8, init_feat * 8, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-        )
-        self.upscale_3 = th.nn.Sequential(
-            # th.nn.BatchNorm3d(init_feat * 8 + init_feat * 4),
-            th.nn.Conv3d(
-                init_feat * 8 + init_feat * 4, init_feat * 4, (3, 3, 3), padding=1
-            ),
-            th.nn.ReLU(),
-            th.nn.Conv3d(init_feat * 4, init_feat * 4, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-        )
-        self.upscale_2 = th.nn.Sequential(
-            # th.nn.BatchNorm3d(init_feat * 4 + init_feat * 2),
-            th.nn.Conv3d(
-                init_feat * 4 + init_feat * 2, init_feat * 2, (3, 3, 3), padding=1
-            ),
-            th.nn.ReLU(),
-            th.nn.Conv3d(init_feat * 2, init_feat * 2, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-        )
-        self.upscale_1 = th.nn.Sequential(
-            # th.nn.BatchNorm3d(init_feat * 2 + init_feat),
-            th.nn.Conv3d(init_feat * 2 + init_feat, init_feat, (3, 3, 3), padding=1),
-            th.nn.ReLU(),
-            th.nn.Conv3d(init_feat, out_neurons, (3, 3, 3), padding=1),
-        )
+        # TODO: Initialize downscaling blocks
+        # TODO: Initialize upscaling blocks
 
     def forward(self, x: th.Tensor) -> th.Tensor:
         """Forward pass.
@@ -157,42 +86,8 @@ class UNet3D(th.nn.Module):
         Returns:
             th.Tensor: Segmented output.
         """
-        x1 = self.downscale_1(x)
-        x1 = pad_odd(x1)
-
-        x2 = self.downscale_2(x1)
-        x2 = pad_odd(x2)
-
-        x3 = self.downscale_3(x2)
-        x3 = pad_odd(x3)
-
-        x4 = self.downscale_4(x3)
-        x4 = pad_odd(x4)
-
-        x5 = self.downscale_5(x4)
-        x5 = pad_odd(x5)
-
-        x6 = self.__upsize(x5)
-        x6 = x6[:, :, : x4.shape[2], : x4.shape[3], : x4.shape[4]]
-        x6 = th.cat([x4, x6], dim=1)
-        x6 = self.upscale_4(x6)
-
-        x7 = self.__upsize(x6)
-        x7 = x7[:, :, : x3.shape[2], : x3.shape[3], : x3.shape[4]]
-        x7 = th.cat([x3, x7], dim=1)
-        x7 = self.upscale_3(x7)
-
-        x8 = self.__upsize(x7)
-        x8 = x8[:, :, : x2.shape[2], : x2.shape[3], : x2.shape[4]]
-        x8 = th.cat([x2, x8], dim=1)
-        x8 = self.upscale_2(x8)
-
-        x9 = self.__upsize(x8)
-        x9 = x9[:, :, : x1.shape[2], : x1.shape[3], : x1.shape[4]]
-        x9 = th.cat([x1, x9], dim=1)
-        x9 = self.upscale_1(x9)
-        out = x9[:, :, : x.shape[2], : x.shape[3], : x.shape[4]]
-        return out
+        # TODO: Implement 3D UNet as discussed in the lecture
+        return th.tensor(0.0)
 
     def __upsize(self, input_: th.Tensor) -> th.Tensor:
         """Upsample image.
@@ -203,8 +98,8 @@ class UNet3D(th.nn.Module):
         Returns:
             th.Tensor: Upsampled image.
         """
-        _, _, d, h, w = input_.shape
-        return th.nn.Upsample(size=(d, h * 2, w * 2), mode="nearest")(input_)
+        # TODO: Upsample the height and width using th.nn.Upsample with nearest mode.
+        return th.tensor(0.0)
 
 
 def train():
@@ -225,7 +120,7 @@ def train():
 
     model = UNet3D().to(device)
     opt = th.optim.Adam(model.parameters(), lr=1e-4)
-    load_new = False
+    load_new = True
 
     writer = metric_writers.create_default_writer(
         "./runs/" + str(datetime.now()), asynchronous=False
@@ -251,7 +146,6 @@ def train():
     val_loss_list = []
     train_loss_lost = []
     iter_count = 0
-    # loss_fn = th.nn.CrossEntropyLoss()
 
     for e in range(epochs):
         random.shuffle(epoch_batches)

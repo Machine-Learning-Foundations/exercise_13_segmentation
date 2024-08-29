@@ -19,26 +19,8 @@ def compute_iou(preds: th.Tensor, target: th.Tensor) -> th.Tensor:
         jnp.ndarray: Mean Intersection over Union values
     """
     assert preds.shape == target.shape
-
-    b, h, w, s = target.shape
-    preds = preds.permute((0, 3, 1, 2))
-    target = target.permute((0, 3, 1, 2))
-    batch_preds = th.reshape(preds, (b * s, h, w, 1))
-    batch_target = th.reshape(target, (b * s, h, w, 1))
-    batch_iou = []
-    for idx in range(b * s):
-        preds = batch_preds[idx]
-        target = batch_target[idx]
-        per_class_iou = []
-        for cls in range(0, 5):
-            if th.any(preds == cls) or th.any(target == cls):
-                tp = th.sum((preds == cls) & (target == cls))
-                fp = th.sum((preds != cls) & (target == cls))
-                fn = th.sum((preds == cls) & (target != cls))
-                iou = tp / (tp + fp + fn + 1e-8)
-                per_class_iou.append(iou)
-        batch_iou.append(th.mean(th.tensor(per_class_iou)))
-    return th.mean(th.tensor(batch_iou))
+    # TODO: Implement meanIoU
+    return th.tensor(0.0)
 
 
 if __name__ == "__main__":
