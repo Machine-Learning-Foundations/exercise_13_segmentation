@@ -1,0 +1,11 @@
+torch
+torchvision
+nox
+matplotlib
+SimpleITK
+scikit-image
+tcia_utils
+clu
+tqdm
+tensorflow
+jax
