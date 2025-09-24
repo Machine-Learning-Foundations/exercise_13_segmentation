@@ -110,7 +110,7 @@ def train():
     data_set = Loader(
         input_shape=input_shape,
         val_keys=val_keys,
-        data_path="/home/lveerama/Courses/Foundations_of_Machine_Learning/day_13_exercise_segmentation_solution/data/",
+        data_path="./data/",
     )
     epochs = 125
     batch_size = 2
@@ -164,7 +164,7 @@ def train():
 
             opt.zero_grad()
             preds = model(input_x)
-            preds = preds.permute((0, 2, 3, 4, 1))
+            preds = preds.permute((0, 3, 4, 2, 1))
             loss = th.mean(
                 softmax_focal_loss(
                     preds, labels_y, th.ones((preds.shape[-1])).to(device)
@@ -186,7 +186,7 @@ def train():
         ).to(device)
         with th.no_grad():
             val_out = model(input_val)
-        val_out = val_out.permute((0, 2, 3, 4, 1))
+        val_out = val_out.permute((0, 3, 4, 2, 1))
         val_loss = th.mean(
             softmax_focal_loss(
                 val_out, label_val, th.ones((val_out.shape[-1])).to(device)
