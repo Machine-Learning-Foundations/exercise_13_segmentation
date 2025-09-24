@@ -27,7 +27,7 @@ if __name__ == "__main__":
     input_val = normalize(val_data["images"].to(device), mean=mean, std=std)
     with th.no_grad():
         val_out = model(input_val)
-    val_out = val_out.permute((0, 2, 3, 4, 1))
+    val_out = val_out.permute((0, 3, 4, 2, 1))
     label_val = th.nn.functional.one_hot(
         val_data["annotation"].type(th.int64), num_classes=5
     ).to(device)
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     input_test = normalize(test_data["images"].to(device), mean=mean, std=std)
     with th.no_grad():
         test_out = model(input_test)
-    test_out = test_out.permute((0, 2, 3, 4, 1))
+    test_out = test_out.permute((0, 3, 4, 2, 1))
     label_test = th.nn.functional.one_hot(
         test_data["annotation"].type(th.int64), num_classes=5
     ).to(device)
