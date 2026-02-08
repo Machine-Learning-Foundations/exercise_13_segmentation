@@ -10,6 +10,7 @@ from train import UNet3D, normalize
 from util import softmax_focal_loss
 
 if __name__ == "__main__":
+    # Change the checkpoint name to match the desired model.
     checkpoint_name = "./weights/unet_softmaxfl_124.pkl"
     device = th.device("cuda") if th.cuda.is_available() else th.device("cpu")
     mean = th.Tensor([206.12558]).to(device)

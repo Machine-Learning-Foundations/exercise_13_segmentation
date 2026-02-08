@@ -56,17 +56,21 @@ In other words, we require a rotation and translation, or more formally
 $$ \mathbf{R}\mathbf{x} + \mathbf{o} = \mathbf{g} .$$
 
 With a rotation matrix $\mathbf{R} \in \mathbb{R}^{3,3}$, the local coordinate vector $\mathbf{x \in \mathbb{R}^{3}}$, the offset $\mathbf{o} \in \mathbb{R}^{3}$, and the global coordinate line $\mathbf{g}$.
-Evaluate this transform for every coordinate box line. Use the `box_lines` function from the
+Evaluate this transform for every coordinate box line.
+
+1. Use the `box_lines` function from the
 `util.py` module to generate a bounding box at the origin. All points in every line must be transformed using the above relationship.
 
-The region of interest is the overlap of all boxes in the global coordinate system. Use [np.amin](https://numpy.org/doc/stable/reference/generated/numpy.amin.html) and [np.amax](https://numpy.org/doc/stable/reference/generated/numpy.amax.html) to find roi-box points $\mathbf{r} \in \mathbb{R}^{3}$. 
+2. The region of interest is the overlap of all boxes in the global coordinate system. Use [np.amin](https://numpy.org/doc/stable/reference/generated/numpy.amin.html) and [np.amax](https://numpy.org/doc/stable/reference/generated/numpy.amax.html) to find roi-box points $\mathbf{r} \in \mathbb{R}^{3}$. 
 
-To obtain array indices, transform all box points back into the local system. Or, more formally:
+3. To obtain array indices, transform all box points back into the local system. Or, more formally:
 
-$$ \mathbf{R}^{-1} \mathbf{r} - \mathbf{o} = \mathbf{x}_{\text{roi}} $$
+    ```math
+    \mathbf{R}^{-1} \mathbf{r} - \mathbf{o} = \mathbf{x}_{\text{roi}}
+    ```
 
-With the inverse of the rotation matrix $\mathbf{R}^{-1}$ use [np.linalg.inv](https://numpy.org/doc/stable/reference/generated/numpy.linalg.inv.html) to compute it. $\mathbf{x}_{\text{roi}} \in \mathbb{R}^{3}$ is a point on the boundary of the local roi-box we seek.
-Transform all boundary points.
+    With the inverse of the rotation matrix $\mathbf{R}^{-1}$ use [np.linalg.inv](https://numpy.org/doc/stable/reference/generated/numpy.linalg.inv.html) to compute it. $\mathbf{x}_{\text{roi}} \in \mathbb{R}^{3}$ is a point on the boundary of the local roi-box we seek.
+    Transform all boundary points.
 
 Using the smallest and largest coordinate values of the roi box in
 local coordinates now allows array indexing. Following Meyer et al. we discard all but the axial `t2w` scans.
@@ -76,7 +80,13 @@ Test your implementation by setting the if-condition wrapping the plotting utili
 ### Task 3: Implement the UNet. 
 Navigate to the `train.py` file in the `src` folder.
 Finish the `UNet3D` class, as discussed in the lecture.
-Use [torch.nn.Conv3d](https://pytorch.org/docs/stable/generated/torch.nn.Conv3d.html), [torch.nn.ReLU](https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html), [torch.nn.MaxPool3d](https://pytorch.org/docs/stable/generated/torch.nn.MaxPool3d.html) and [th.nn.UpSample](https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html) to build the model. For upsampling, we suggest to use `mode='nearest'` algorithm for reproducibility purpose.
+
+1. In the `__init__` function, you need to define the building blocks of the UNet architecture. To do this you can use [torch.nn.Sequential](https://docs.pytorch.org/docs/stable/generated/torch.nn.Sequential.html) to stack multiple layers together, so that you can call them with a single forward pass. For defining the blocks look at the slide from the lecture to see how many layers and which types of layers and dimensions you need to use.
+Use [torch.nn.Conv3d](https://pytorch.org/docs/stable/generated/torch.nn.Conv3d.html), [torch.nn.ReLU](https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html) and [torch.nn.MaxPool3d](https://pytorch.org/docs/stable/generated/torch.nn.MaxPool3d.html) to build the blocks.
+
+2. Next, go to the `__upsize` function and implement the upsampling using [th.nn.Upsample](https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html) which is needed for the second half of the UNet. For upsampling, we suggest to use `mode='nearest'` algorithm for reproducibility purpose.
+
+3. Finally, implement the `forward` function to define the forward pass of the UNet. You can use the building blocks you defined in the `__init__` function and the upsampling function you implemented in the previous step to build the forward pass. Remember to use skip connections as shown in the lecture slides.
 
 ### Task 4: Implement the focal-loss.
 
@@ -84,11 +94,11 @@ Open the `util.py` module in `src` and implement the `softmax_focal_loss` functi
 
 $$\mathcal{L}(\mathbf{o},\mathbf{I})=-\mathbf{I}\cdot(1-\sigma_s(\mathbf{o}))^\gamma\cdot\alpha\cdot\ln(\sigma_s(\mathbf{o})) $$
 
-with output logits $\mathbf{o}$, the corresponding labels $\mathbf{I}$ and the softmax function $\sigma_s$.
+with output logits $\mathbf{o}$, the corresponding labels $\mathbf{I}$ and the softmax function $\sigma_s$ (`torch.nn.functional.softmax`).
 
 ### Task 5: Run and test the training script.
 
-Execute the training script with by running `scripts/train.slurm` (locally or using `sbatch`).
+Execute the training script by running `scripts/train.slurm` (locally or using `sbatch`).
 
 After training you can test your model by changing the `checkpoint_name` variable in `src/sample.py` to the desired model checkpoint and running `scripts/test.slurm`.
 

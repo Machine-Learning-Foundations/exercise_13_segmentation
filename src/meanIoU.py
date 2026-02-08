@@ -12,14 +12,14 @@ def compute_iou(preds: th.Tensor, target: th.Tensor) -> th.Tensor:
     """Calculate meanIoU for a given batch.
 
     Args:
-        preds (jnp.ndarray): Predictions from network
-        target (jnp.ndarray): Labels
+        preds (th.Tensor): Predictions from network
+        target (th.Tensor): Labels
 
     Returns:
-        jnp.ndarray: Mean Intersection over Union values
+        th.Tensor: Mean Intersection over Union values
     """
     assert preds.shape == target.shape
-    # TODO: Implement meanIoU
+    # 6. TODO: Implement meanIoU
     return th.tensor(0.0)
 
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
             batched_labels[batch_index],
         )
         preds = model(imgs)
-        preds = preds.permute((0, 2, 3, 4, 1))
+        preds = preds.permute((0, 3, 4, 2, 1))
         preds = th.argmax(preds, dim=-1)
         ious.append(compute_iou(preds, lbls))
 
