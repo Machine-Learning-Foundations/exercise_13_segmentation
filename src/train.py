@@ -87,6 +87,10 @@ class UNet3D(th.nn.Module):
         Returns:
             th.Tensor: Segmented output.
         """
+        x = x.permute(
+            (0, 1, 4, 2, 3)
+        )  # Permute such that x has shape (batch, channels, depth, height, width)
+
         # 3.3 TODO: Implement the forward pass of the UNet using the building blocks
         # defined in the __init__ function and the upsampling function.
         return th.tensor(0.0)
