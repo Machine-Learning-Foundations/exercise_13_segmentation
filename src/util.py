@@ -137,14 +137,14 @@ def compute_roi(images: Tuple[Image, Image, Image]):
     rects = []
     for pos, size in enumerate(sizes):
         lines = box_lines(size)
-        # TODO: Rotate and shift the lines.
+        # 2.1 TODO: Rotate and shift the lines.
         rotated = []
         shifted = []
         rects.append(shifted)
 
     # find the intersection.
-    rects_stacked = np.stack(rects)  # Had to rename because of mypy
-    # TODO: Find the axis maxima and minima
+    rects_stacked = np.stack(rects)
+    # 2.2 TODO: Find the axis maxima and minima
     bbs = [
         (
             np.zeros_like(rect[0, 0]),
@@ -164,7 +164,7 @@ def compute_roi(images: Tuple[Image, Image, Image]):
     rects_stacked = np.concatenate([rects_stacked, np.expand_dims(roi_bb_lines, 0)])
 
     spacings = [image.GetSpacing() for image in images]
-    # compute roi coordinates in image space.
+    # 2.3 TODO: compute roi coordinates in image space.
     img_coord_rois = [
         (
             np.zeros_like(roi_bb[0]),  # TODO: Implement me
@@ -254,14 +254,8 @@ def softmax_focal_loss(
     gamma: float = 2,
 ) -> th.Tensor:
     """Compute a softmax focal loss."""
-    # chex.assert_type([logits], float)
-    # # see also the original sigmoid implementation at:
-    # # https://github.com/facebookresearch/fvcore/blob/main/fvcore/nn/focal_loss.py
-    # chex.assert_type([logits], float)
-    # focus = jnp.power(1.0 - jax.nn.softmax(logits, axis=-1), gamma)
-    # loss = -labels * focus * alpha * jax.nn.log_softmax(logits, axis=-1)
-    # return jnp.sum(loss, axis=-1)
+
     logits = logits.float()
     labels = labels.float()
-    # TODO: Implement softmax focal loss.
+    # 4. TODO: Implement softmax focal loss.
     return th.tensor(0.0)

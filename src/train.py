@@ -74,6 +74,7 @@ class UNet3D(th.nn.Module):
         input_feat = 1
         init_feat = 16
         out_neurons = 5
+        # 3.1 TODO: Define the building blocks of the UNet architecture.
         # TODO: Initialize downscaling blocks
         # TODO: Initialize upscaling blocks
 
@@ -86,7 +87,12 @@ class UNet3D(th.nn.Module):
         Returns:
             th.Tensor: Segmented output.
         """
-        # TODO: Implement 3D UNet as discussed in the lecture
+        x = x.permute(
+            (0, 1, 4, 2, 3)
+        )  # Permute such that x has shape (batch, channels, depth, height, width)
+
+        # 3.3 TODO: Implement the forward pass of the UNet using the building blocks
+        # defined in the __init__ function and the upsampling function.
         return th.tensor(0.0)
 
     def __upsize(self, input_: th.Tensor) -> th.Tensor:
@@ -98,7 +104,7 @@ class UNet3D(th.nn.Module):
         Returns:
             th.Tensor: Upsampled image.
         """
-        # TODO: Upsample the height and width using th.nn.Upsample with nearest mode.
+        # 3.2 TODO: Upsample the height and width using th.nn.Upsample with nearest mode.
         return th.tensor(0.0)
 
 
@@ -170,7 +176,6 @@ def train():
                     preds, labels_y, th.ones((preds.shape[-1])).to(device)
                 )
             )
-            # loss = loss_fn(preds, labels_y.type(th.LongTensor).to(device))
             loss.backward()
             opt.step()
 
@@ -192,13 +197,11 @@ def train():
                 val_out, label_val, th.ones((val_out.shape[-1])).to(device)
             )
         )
-        # label_val = val_data["annotation"].to(device)
-        # val_loss = loss_fn(val_out, label_val.type(th.LongTensor).to(device))
+
         val_loss_list.append((e, val_loss.item()))
         writer.write_scalars(e, {"validation_loss": val_loss.item()})
         val_out = val_out.cpu()
         print(f"Validation loss: {val_loss.item()}")
-        # val_out = val_out.permute((0, 2, 3, 4, 1))
         for i in range(len(val_keys)):
             writer.write_images(
                 e,
